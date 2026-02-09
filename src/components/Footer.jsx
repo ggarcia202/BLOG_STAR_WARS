@@ -1,11 +1,10 @@
 export const Footer = () => (
-	<footer className="footer mt-auto py-3 text-center">
+	<footer className="footer mt-auto py-3 text-center bg-dark text-light">
 		<p>
-			Check the <a target="_blank" href="https://4geeks.com/docs/start/start-react-advanced">template documentation</a> <i className="fa-solid fa-file"></i> for help.
+			Star Wars Blog with React, Router y Context API.
 		</p>
 		<p>
-			Made with <i className="fa fa-heart text-danger" /> by{" "}
-			<a href="http://www.4geeksacademy.com">4Geeks Academy</a>
+			Datos desde <a className="text-warning" target="_blank" rel="noreferrer" href="https://www.swapi.tech/">SWAPI.tech</a> e imagenes desde <a className="text-warning" target="_blank" rel="noreferrer" href="https://starwars-visualguide.com/">Visual Guide</a>.
 		</p>
 	</footer>
 );
