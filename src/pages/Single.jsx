@@ -5,7 +5,8 @@ import useGlobalReducer from "../hooks/useGlobalReducer";  // Import a custom ho
 import { EntityImage } from "../components/EntityImage.jsx";
 import {
   ENTITY_LABELS,
-  getEntityDetailUrl
+  getEntityDetailUrl,
+  getFavoriteUrl
 } from "../utils/starWars";
 
 // Define and export the Single component which displays individual item details.
@@ -29,7 +30,7 @@ export const Single = () => {
         if (!response.ok) throw new Error("No se pudo cargar el detalle.");
 
         const data = await response.json();
-        setItemDetails(data.result?.properties || null);
+        setItemDetails(data || null);
       } catch {
         setError("No se pudo cargar el detalle.");
       } finally {
@@ -45,22 +46,36 @@ export const Single = () => {
   }, [store.favorites, theType, theId]);
 
   const handleToggleFavorite = () => {
-    if (isFavorite) {
-      dispatch({
-        type: "remove_favorite",
-        payload: { type: theType, uid: theId }
-      });
-      return;
-    }
+    const toggleFavorite = async () => {
+      try {
+        const response = await fetch(getFavoriteUrl(theType, theId), {
+          method: isFavorite ? "DELETE" : "POST"
+        });
 
-    dispatch({
-      type: "add_favorite",
-      payload: {
-        type: theType,
-        uid: theId,
-        name: itemDetails?.name || "Sin nombre"
+        if (!response.ok) throw new Error("No se pudo actualizar el favorito.");
+
+        if (isFavorite) {
+          dispatch({
+            type: "remove_favorite",
+            payload: { type: theType, uid: String(theId) }
+          });
+          return;
+        }
+
+        dispatch({
+          type: "add_favorite",
+          payload: {
+            type: theType,
+            uid: String(theId),
+            name: itemDetails?.name || "Sin nombre"
+          }
+        });
+      } catch {
+        setError("No se pudo actualizar favoritos. Verifica que el backend este activo.");
       }
-    });
+    };
+
+    toggleFavorite();
   };
 
   const detailEntries = itemDetails

@@ -1,14 +1,29 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import { getFavoriteUrl } from "../utils/starWars";
 
 export const Navbar = () => {
 	const { store, dispatch } = useGlobalReducer();
+	const [error, setError] = useState("");
 
 	const handleRemoveFavorite = (type, uid) => {
-		dispatch({
-			type: "remove_favorite",
-			payload: { type, uid }
-		});
+		const removeFavorite = async () => {
+			try {
+				setError("");
+				const response = await fetch(getFavoriteUrl(type, uid), { method: "DELETE" });
+				if (!response.ok) throw new Error("No se pudo eliminar favorito.");
+
+				dispatch({
+					type: "remove_favorite",
+					payload: { type, uid }
+				});
+			} catch {
+				setError("No se pudo eliminar favorito.");
+			}
+		};
+
+		removeFavorite();
 	};
 
 	return (
@@ -54,6 +69,7 @@ export const Navbar = () => {
 					</ul>
 				</div>
 			</div>
+			{error && <div className="container text-danger small pb-2">{error}</div>}
 		</nav>
 	);
 };

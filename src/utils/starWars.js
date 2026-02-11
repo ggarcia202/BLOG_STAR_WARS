@@ -1,14 +1,14 @@
 export const ENTITY_LABELS = {
   people: "Personajes",
-  planets: "Planetas",
-  vehicles: "Vehiculos"
+  planets: "Planetas"
 };
 
 export const ENTITY_IMAGE_PATH = {
   people: "people",
-  planets: "planets",
-  vehicles: "vehicles"
+  planets: "planets"
 };
+
+export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:3001").replace(/\/$/, "");
 
 export const getEntityImage = (type, id) => {
   const imagePath = ENTITY_IMAGE_PATH[type];
@@ -16,11 +16,41 @@ export const getEntityImage = (type, id) => {
 };
 
 export const getEntityListUrl = (type) => {
-  return `https://www.swapi.tech/api/${type}?page=1&limit=10`;
+  return `${API_BASE_URL}/${type}`;
 };
 
 export const getEntityDetailUrl = (type, id) => {
-  return `https://www.swapi.tech/api/${type}/${id}`;
+  return `${API_BASE_URL}/${type}/${id}`;
+};
+
+export const getFavoritesUrl = () => `${API_BASE_URL}/users/favorites`;
+
+const FAVORITE_ENDPOINT_BY_TYPE = {
+  people: "people",
+  planets: "planet"
+};
+
+export const getFavoriteUrl = (type, id) => {
+  const endpointType = FAVORITE_ENDPOINT_BY_TYPE[type];
+  if (!endpointType) throw new Error("Tipo de favorito no soportado.");
+  return `${API_BASE_URL}/favorite/${endpointType}/${id}`;
+};
+
+export const normalizeEntity = (type, item) => ({
+  uid: String(item.id),
+  name: item.name,
+  type,
+  details: item
+});
+
+export const normalizeFavorite = (favorite) => {
+  const type = favorite.type === "planet" ? "planets" : "people";
+  const entity = favorite.item || {};
+  return {
+    uid: String(entity.id),
+    name: entity.name || "Sin nombre",
+    type
+  };
 };
 
 const wikipediaImageCache = new Map();

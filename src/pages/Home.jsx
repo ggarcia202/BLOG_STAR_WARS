@@ -4,7 +4,9 @@ import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { EntityImage } from "../components/EntityImage.jsx";
 import {
 	getEntityListUrl,
-	ENTITY_LABELS
+	ENTITY_LABELS,
+	getFavoriteUrl,
+	normalizeEntity
 } from "../utils/starWars.js";
 
 export const Home = () => {
@@ -18,7 +20,7 @@ export const Home = () => {
 				setLoading(true);
 				setError("");
 
-				const entityTypes = ["people", "planets", "vehicles"];
+				const entityTypes = ["people", "planets"];
 				const requests = entityTypes.map((type) => fetch(getEntityListUrl(type)));
 				const responses = await Promise.all(requests);
 				const payloads = await Promise.all(
@@ -29,13 +31,14 @@ export const Home = () => {
 				);
 
 				entityTypes.forEach((type, index) => {
+					const normalizedItems = (payloads[index] || []).map((item) => normalizeEntity(type, item));
 					dispatch({
 						type: "set_entities",
-						payload: { entityType: type, items: payloads[index].results || [] }
+						payload: { entityType: type, items: normalizedItems }
 					});
 				});
 			} catch {
-				setError("No se pudo cargar SWAPI. Intenta de nuevo.");
+				setError("No se pudo cargar la API del backend. Intenta de nuevo.");
 			} finally {
 				setLoading(false);
 			}
@@ -49,13 +52,27 @@ export const Home = () => {
 	};
 
 	const handleFavorite = (type, item) => {
-		const exists = isFavorite(type, item.uid);
-		dispatch({
-			type: exists ? "remove_favorite" : "add_favorite",
-			payload: exists
-				? { type, uid: item.uid }
-				: { type, uid: item.uid, name: item.name }
-		});
+		const toggleFavorite = async () => {
+			const exists = isFavorite(type, item.uid);
+			try {
+				const response = await fetch(getFavoriteUrl(type, item.uid), {
+					method: exists ? "DELETE" : "POST"
+				});
+
+				if (!response.ok) throw new Error("No se pudo actualizar el favorito.");
+
+				dispatch({
+					type: exists ? "remove_favorite" : "add_favorite",
+					payload: exists
+						? { type, uid: item.uid }
+						: { type, uid: item.uid, name: item.name }
+				});
+			} catch {
+				setError("No se pudo actualizar favoritos. Verifica que el backend este activo.");
+			}
+		};
+
+		toggleFavorite();
 	};
 
 	const renderSection = (type) => {
@@ -101,7 +118,6 @@ export const Home = () => {
 			{error && <div className="alert alert-danger">{error}</div>}
 			{renderSection("people")}
 			{renderSection("planets")}
-			{renderSection("vehicles")}
 		</div>
 	);
 };

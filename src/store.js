@@ -2,7 +2,6 @@ export const initialStore = () => {
   return {
     people: [],
     planets: [],
-    vehicles: [],
     favorites: []
   };
 };
@@ -14,6 +13,12 @@ export default function storeReducer(store, action = {}) {
       return {
         ...store,
         [entityType]: items
+      };
+    }
+    case "set_favorites": {
+      return {
+        ...store,
+        favorites: action.payload
       };
     }
     case "add_favorite": {
